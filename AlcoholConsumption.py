@@ -1,3 +1,5 @@
+
+
 class AlcoholConsumption():
     def __init__(self):
         self.consumption_record = {}
