@@ -14,7 +14,7 @@ class User:
     def mainLoop(self):
         # AlcoholConsumption records should be stored in a CSV (one per user) that
         # User can use CSVReader to read from
-        # Or maybe AlcoholConsumption class could be serialised and stored in a normal text file?
+        # Or maybe AlcoholConsumption class could be serialised and stored as json?
         pass
 
     def enterNewAlcoholData(self):
