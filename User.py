@@ -1,21 +1,26 @@
 import hashlib
 import CSVReader
 import AlcoholConsumption
+import json
 
 class User:
     def __init__(self):
         self.CSVReader = CSVReader.CSVReader()
-        self.AlcoholConsumption = None
-        self.userFile = None
+        self.AlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
+        self.userAlcoholFile = None
 
         self.loginOrRegister()
         self.mainLoop()
 
     def mainLoop(self):
-        # AlcoholConsumption records should be stored in a CSV (one per user) that
-        # User can use CSVReader to read from
-        # Or maybe AlcoholConsumption class could be serialised and stored as json?
-        pass
+        # Or maybe AlcoholConsumption class could be serialised and stored in a normal text file?
+        self.AlcoholConsumption
+        with open(self.userAlcoholFile, "r") as f:
+            self.AlcoholConsumption.consumption_record = json.loads(f.read())
+        
+        while True:
+            action = input() # what should i do?
+            # do stuff
 
     def enterNewAlcoholData(self):
         pass
@@ -45,8 +50,9 @@ class User:
             print("Invalid credentials.\n")
             username = input("Enter your username: ")
             password = hashString(input("Enter your password: "))
-            
+
         self.username = username
+        self.userAlcoholFile = self.username + "Alcohol.json"
         # should set self.userFile to the CSV file containing this users' data
 
     def check(self, username, password):
@@ -72,11 +78,15 @@ class User:
             f.write(username+','+password+'\n')
 
         self.username = username
-        # should create new CSV file for users' data
+
+        newAlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
+        serialised = json.dumps(newAlcoholConsumption.__dict__)
+        self.userAlcoholFile = self.username+"Alcohol.json"
+        with open(self.userAlcoholFile, 'w') as f:
+            f.write(serialised)
 
 
 def hashString(string):
     return hashlib.md5(string.encode()).hexdigest()
-
 
 user = User()
