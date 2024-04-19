@@ -1,28 +1,38 @@
 import hashlib
 import CSVReader
 import AlcoholConsumption
-import json
+
+# TODO:
+#   1) Read CSV file for sleep and alcohol data using CSV reader
+#   2) Get input and write to CSV file
+#   3) Integrate reward system
+#   4) Integrate goal manager
+
 
 class User:
     def __init__(self):
         self.CSVReader = CSVReader.CSVReader()
         self.AlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
-        self.userAlcoholFile = None
+        self.alcoholFile = None
+        self.sleepFile = None
+        self.sleepRecords = None
 
         self.loginOrRegister()
         self.mainLoop()
 
     def mainLoop(self):
-        # Or maybe AlcoholConsumption class could be serialised and stored in a normal text file?
-        self.AlcoholConsumption
-        with open(self.userAlcoholFile, "r") as f:
-            self.AlcoholConsumption.consumption_record = json.loads(f.read())
+        with open(self.alcoholFile, "r") as f:
+            pass
         
+        with open(self.sleepFile, "r") as f:
+            pass
+
         while True:
             action = input() # what should i do?
             # do stuff
 
     def enterNewAlcoholData(self):
+        # write new alcohol data
         pass
 
     def loginOrRegister(self):
@@ -52,7 +62,8 @@ class User:
             password = hashString(input("Enter your password: "))
 
         self.username = username
-        self.userAlcoholFile = self.username + "Alcohol.json"
+        self.alcoholFile = self.username + "Alcohol.txt"
+        self.sleepFile = self.username + "Sleep.txt"
         # should set self.userFile to the CSV file containing this users' data
 
     def check(self, username, password):
@@ -79,11 +90,8 @@ class User:
 
         self.username = username
 
-        newAlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
-        serialised = json.dumps(newAlcoholConsumption.__dict__)
-        self.userAlcoholFile = self.username+"Alcohol.json"
-        with open(self.userAlcoholFile, 'w') as f:
-            f.write(serialised)
+        self.alcoholFile = self.username+"Alcohol.txt"
+        self.sleepFile = self.username+"Sleep.txt"
 
 
 def hashString(string):
