@@ -25,6 +25,8 @@ class AlcoholConsumption():
         else:
             print("No record found for the given date.")
 
+
+'''
 # Example usage:
 alcohol = AlcoholConsumption()
 
@@ -48,3 +50,4 @@ alcohol.delete_record("2024-04-15")
 
 # Get all consumption records after deletion
 print(alcohol.get_all_records())  # Output: {}
+'''
