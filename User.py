@@ -1,39 +1,53 @@
 import hashlib
 import CSVReader
 import AlcoholConsumption
+#import Sleep
 
 # TODO:
-#   1) Read CSV file for sleep and alcohol data using CSV reader
+#   1) Put sleep data in class instance
 #   2) Get input and write to CSV file
 #   3) Integrate reward system
 #   4) Integrate goal manager
+#   5) Main loop options
 
+# Date,Alcohol Consumption (count),Sleep Analysis [Asleep] (hr),Sleep Analysis [In Bed] (hr),Sleep Analysis [Core] (hr),Sleep Analysis [Deep] (hr),Sleep Analysis [REM] (hr),Sleep Analysis [Awake] (hr) 
 
 class User:
     def __init__(self):
         self.CSVReader = CSVReader.CSVReader()
         self.AlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
-        self.alcoholFile = None
-        self.sleepFile = None
-        self.sleepRecords = None
+        #self.Sleep = Sleep.sleep()
+        self.userFile = None
 
         self.loginOrRegister()
         self.mainLoop()
 
     def mainLoop(self):
-        with open(self.alcoholFile, "r") as f:
-            pass
-        
-        with open(self.sleepFile, "r") as f:
-            pass
+        self.CSVReader.read(self.userFile)
+
+        for key, value in self.getRawAlcoholData().items():
+            self.AlcoholConsumption.record(key[:10], value)
 
         while True:
             action = input() # what should i do?
             # do stuff
 
     def enterNewAlcoholData(self):
-        # write new alcohol data
-        pass
+        date = input("Enter the date in format YYYY-MM-DD: ")
+        quantity = int(input("Enter the number of units you had: "))
+
+        if date in self.AlcoholConsumption.consumption_record.keys():
+            self.AlcoholConsumption.record(date, quantity)
+            # edit existing row
+        else:
+            self.AlcoholConsumption.record(date, quantity)
+            # add new row
+            with open(self.userFile, 'a') as f:
+                f.write(date+" 00:00:00,"+str(quantity)+",0,0,0,0,0,0,")
+
+
+        
+
 
     def loginOrRegister(self):
         self.credentialsFile = "credentials.txt"
@@ -47,10 +61,10 @@ class User:
             self.register()
 
     def getRawSleepData(self):
-        pass
+        return self.CSVReader.dicts[1:] # self.asleep, self.in_bed, self.core, self.deep, self.rem, self.awake
 
     def getRawAlcoholData(self):
-        pass
+        return self.CSVReader.alcohol
 
     def login(self):
         username = input("Enter your username: ")
@@ -62,9 +76,7 @@ class User:
             password = hashString(input("Enter your password: "))
 
         self.username = username
-        self.alcoholFile = self.username + "Alcohol.txt"
-        self.sleepFile = self.username + "Sleep.txt"
-        # should set self.userFile to the CSV file containing this users' data
+        self.userFile = username + "Data.csv"
 
     def check(self, username, password):
         with open(self.credentialsFile, 'r') as f:
@@ -89,9 +101,7 @@ class User:
             f.write(username+','+password+'\n')
 
         self.username = username
-
-        self.alcoholFile = self.username+"Alcohol.txt"
-        self.sleepFile = self.username+"Sleep.txt"
+        self.userFile = username + "Data.csv"
 
 
 def hashString(string):
