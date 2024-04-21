@@ -86,7 +86,7 @@ class User:
         else:
             self.AlcoholConsumption.record(date, quantity)
             with open(self.userFile, 'a') as f:
-                f.write(date+" 00:00:00,"+str(quantity)+",0,0,0,0,0,0,")
+                f.write("\n"+date+" 00:00:00,"+str(quantity)+",0,0,0,0,0,0,")
 
     def loginOrRegister(self):
         self.credentialsFile = "credentials.txt"
