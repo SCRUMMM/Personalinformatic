@@ -1,14 +1,14 @@
 import hashlib
 import CSVReader
 import AlcoholConsumption
+import GoalManager
+import RewardSystem
 #import Sleep
 
 # TODO:
 #   1) Put sleep data in class instance
-#   2) Get input and write to CSV file
-#   3) Integrate reward system
-#   4) Integrate goal manager
-#   5) Main loop options
+#   2) Get sleep input and write to CSV file
+#   3) Test
 
 # Date,Alcohol Consumption (count),Sleep Analysis [Asleep] (hr),Sleep Analysis [In Bed] (hr),Sleep Analysis [Core] (hr),Sleep Analysis [Deep] (hr),Sleep Analysis [REM] (hr),Sleep Analysis [Awake] (hr) 
 
@@ -18,6 +18,8 @@ class User:
         self.AlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
         #self.Sleep = Sleep.sleep()
         self.userFile = None
+        self.GoalManager = None
+        self.RewardSystem = None
 
         self.loginOrRegister()
         self.mainLoop()
@@ -29,8 +31,26 @@ class User:
             self.AlcoholConsumption.record(key[:10], value)
 
         while True:
-            action = input() # what should i do?
-            # do stuff
+            action = input("Enter 'a' to add alcohol data, 'g' to access your goals, 'r' to access your rewards, or 'e' to exit: ")
+            while action not in ['a', 'g', 'r', 'e']:
+                action = input("Enter 'a' to add alcohol data, 'g' to access your goals, 'r' to access your rewards, or 'e' to exit: ")
+
+            if action == 'a':
+                self.enterNewAlcoholData()
+            elif action == 'g':
+                inp = input("Enter 's' to set new goals, or 'p' to see your progress: ")
+                while inp not in ['s', 'p']:
+                    inp = input("Enter 's' to set new goals, or 'p' to see your progress: ")
+                if inp == 's':
+                    self.GoalManager.setGoals()
+                else:
+                    self.GoalManager.trackProgress()
+            elif action == 'r':
+                self.RewardSystem.redeemRewards()
+                with open(self.username+"Points.txt", 'w') as f:
+                    f.write(str(self.RewardSystem.points))
+            else:
+                exit()
 
     def enterNewAlcoholData(self):
         date = input("Enter the date in format YYYY-MM-DD: ")
@@ -38,16 +58,35 @@ class User:
 
         if date in self.AlcoholConsumption.consumption_record.keys():
             self.AlcoholConsumption.record(date, quantity)
-            # edit existing row
+            
+            with open(self.userFile, 'r') as f:
+                raw = f.readlines()
+            
+            for row in raw:
+                if row[:19] == date + " 00:00:00":
+                    currentRow = row.split(',')
+                    break
+            
+            currentRow[1] = str(quantity)
+            currentRow = ",".join(currentRow)
+            
+            newRaw = []
+            for row in raw:
+                if row[:19] == date + " 00:00:00":
+                    currentRow = row.split(',')
+                    currentRow[1] = str(quantity)
+                    currentRow = ",".join(currentRow)
+                    newRaw.append(currentRow)
+                else:
+                    newRaw.append(row)
+
+            with open(self.userFile, 'w') as f:
+                f.write("".join(newRaw))
+
         else:
             self.AlcoholConsumption.record(date, quantity)
-            # add new row
             with open(self.userFile, 'a') as f:
                 f.write(date+" 00:00:00,"+str(quantity)+",0,0,0,0,0,0,")
-
-
-        
-
 
     def loginOrRegister(self):
         self.credentialsFile = "credentials.txt"
@@ -77,6 +116,10 @@ class User:
 
         self.username = username
         self.userFile = username + "Data.csv"
+        self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
+        with open(username+"Points.txt", 'r') as f:
+            points = int(f.read())
+        self.RewardSystem = RewardSystem.RewardSystem(points, self.userFile)
 
     def check(self, username, password):
         with open(self.credentialsFile, 'r') as f:
@@ -102,7 +145,10 @@ class User:
 
         self.username = username
         self.userFile = username + "Data.csv"
-
+        self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
+        with open(username + "Points.txt") as f:
+            f.write("0")
+        self.RewardSystem = RewardSystem.RewardSystem(0, self.userFile)
 
 def hashString(string):
     return hashlib.md5(string.encode()).hexdigest()
