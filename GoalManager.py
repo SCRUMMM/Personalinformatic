@@ -28,8 +28,9 @@ from datetime import datetime, date, timedelta
 # add window slider!
 
 class GoalManager:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, goalsFilename, dataFilename) -> None:
+        self.goalsFilename = goalsFilename
+        self.dataFilename = dataFilename
     def setGoals(self):
         setNone = True
         while True: #exit with break
@@ -164,15 +165,15 @@ class GoalManager:
 
     def addEntry(self, goalType, goalFigure, goalSpan, goalDuration):
         import os
-        with open("goals.txt", 'a') as goalFile:
-            if (os.path.getsize("goals.txt") == 0):
+        with open(self.goalsFilename, 'a') as goalFile:
+            if (os.path.getsize(self.goalsFilename) == 0):
                 goalFile.write("\"goalType\", \"goalFigure\", \"goalSpan\", \"goalDuration\"\n")
             goalFile.write("\"" + goalType + "\", \"" + str(goalFigure) + "\", \"" + str(goalSpan) + "\", \"" + str(goalDuration) + "\"\n")
 
     def trackProgress(self):
         # ASSUMES GIVEN DATES ARE CONSECUTIVE
         goals = [] #String[] array of goals
-        with open('goals.txt', 'r') as goalFile:
+        with open(self.goalsFilename, 'r') as goalFile:
             for goal in goalFile:
                 quoteCount = 0
                 thisGT = ""
@@ -213,7 +214,7 @@ class GoalManager:
 
         def deleteCompleteGoals():
             print(goals)
-            with open("goals.txt", 'w') as goalFile:
+            with open(self.goalsFilename, 'w') as goalFile:
                 goalFile.write("")
             for i in range (0, len(goals), 1):
                 if areGoalsMet[i] == False:
@@ -458,17 +459,17 @@ class GoalManager:
         return dict
     def getHours(self): 
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFilename)
         hours = getattr(csvGet, "hours")
         return self.cleanseDict(hours)
     def getQualities(self):
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFilename)
         qualities = getattr(csvGet, "quality")
         return self.cleanseDict(qualities)
     def getDrinks(self):
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFilename)
         drinks = getattr(csvGet, "alcohol")
         return self.cleanseDict(drinks)
 
