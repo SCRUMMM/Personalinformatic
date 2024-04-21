@@ -145,6 +145,8 @@ class User:
 
         self.username = username
         self.userFile = username + "Data.csv"
+        with open(username + "Goals.txt", 'w') as f:
+            f.write("")
         self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
         with open(username + "Points.txt") as f:
             f.write("0")
