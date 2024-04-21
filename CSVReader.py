@@ -33,8 +33,8 @@ class CSVReader:
         self.deep = {}
         self.rem = {}
         self.awake = {}
-        self.dicts = {self.alcohol, self.asleep, self.in_bed, self.core,
-                      self.deep, self.rem, self.awake}
+        self.dicts = [self.alcohol, self.asleep, self.in_bed, self.core,
+                      self.deep, self.rem, self.awake]
     
     
     def read(self, filePath):
