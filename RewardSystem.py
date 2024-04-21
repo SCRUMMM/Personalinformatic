@@ -19,8 +19,9 @@ from PIL import Image, ImageTk
 from datetime import datetime, date, timedelta
 
 class RewardSystem:
-    def __init__(self) -> None:
-        self.points = 0
+    def __init__(self, points, dataFile) -> None:
+        self.points = points
+        self.dataFile = dataFile
     def redeemRewards(self):
 
         self.awardPoints()
@@ -253,17 +254,17 @@ class RewardSystem:
         return dict
     def getHours(self): 
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFile)
         hours = getattr(csvGet, "hours")
         return self.cleanseDict(hours)
     def getQualities(self):
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFile)
         qualities = getattr(csvGet, "quality")
         return self.cleanseDict(qualities)
     def getDrinks(self):
         csvGet = CSVReader()
-        csvGet.read("data.txt")
+        csvGet.read(self.dataFile)
         drinks = getattr(csvGet, "alcohol")
         return self.cleanseDict(drinks)
 
