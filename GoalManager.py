@@ -1,5 +1,5 @@
 """
-GoalManager for CM12005 coursework by Liam O'Connor 2024-04-18
+GoalManager for CM12005 coursework by Liam O'Connor 2024-04-18, updated 2024-04-22 for compatibility
 
 setGoals():
 Creates a pop-up window with input boxes where the user can enter to set a goal
@@ -16,7 +16,6 @@ goalMan = GoalManager()
 goalMan.trackProgress()
 goalMan.setGoals()
 """
-
 from Sleep import Sleep
 from AlcoholConsumption import AlcoholConsumption
 import tkinter as tk
@@ -24,13 +23,9 @@ from tkinter import ttk
 from CSVReader import CSVReader
 from datetime import datetime, date, timedelta
 
-# Make plan / layout in word doc
-# add window slider!
-
 class GoalManager:
-    def __init__(self, goalsFilename, dataFilename) -> None:
-        self.goalsFilename = goalsFilename
-        self.dataFilename = dataFilename
+    def __init__(self, recordsFilePath) -> None:
+        self.fPath = recordsFilePath
     def setGoals(self):
         setNone = True
         while True: #exit with break
@@ -73,8 +68,8 @@ class GoalManager:
                 menu.destroy()
 
             
-            menu.geometry("400x320")
-            label1 = tk.Label(menu, text = "1. Select goal type:")
+            menu.geometry("400x340")
+            label1 = tk.Label(menu, text = "1. Select goal type:\nNote: Quality sleep is considered any sleep\ncontaining at least 2 hours of REM sleep")
             choices = ["Minimum Sleep","Minimum Quality Sleep","Maximum Sleep","Maximum Alcohol Consumption"]
             enteredText1 = tk.StringVar()
             box1 = ttk.Combobox(menu, textvariable = enteredText1, values = choices, width = "30")
@@ -117,7 +112,7 @@ class GoalManager:
                     self.errorMenu("Box 1 can't be left blank")
                     continue
                 if goalType not in choices:
-                    self.errorMenu("Box 1 must contain one of the provided option")
+                    self.errorMenu("Box 1 must contain one of the provided options")
                     continue
                 if (goalDuration <= 0
                 or  goalFigure   <= 0
@@ -165,15 +160,15 @@ class GoalManager:
 
     def addEntry(self, goalType, goalFigure, goalSpan, goalDuration):
         import os
-        with open(self.goalsFilename, 'a') as goalFile:
-            if (os.path.getsize(self.goalsFilename) == 0):
+        with open("goals.txt", 'a') as goalFile:
+            if (os.path.getsize("goals.txt") == 0):
                 goalFile.write("\"goalType\", \"goalFigure\", \"goalSpan\", \"goalDuration\"\n")
             goalFile.write("\"" + goalType + "\", \"" + str(goalFigure) + "\", \"" + str(goalSpan) + "\", \"" + str(goalDuration) + "\"\n")
 
     def trackProgress(self):
         # ASSUMES GIVEN DATES ARE CONSECUTIVE
         goals = [] #String[] array of goals
-        with open(self.goalsFilename, 'r') as goalFile:
+        with open('goals.txt', 'r') as goalFile:
             for goal in goalFile:
                 quoteCount = 0
                 thisGT = ""
@@ -213,8 +208,7 @@ class GoalManager:
         blank2 = tk.Label(box, text = " ")
 
         def deleteCompleteGoals():
-            print(goals)
-            with open(self.goalsFilename, 'w') as goalFile:
+            with open("goals.txt", 'w') as goalFile:
                 goalFile.write("")
             for i in range (0, len(goals), 1):
                 if areGoalsMet[i] == False:
@@ -291,7 +285,7 @@ class GoalManager:
 
         hours = self.getHours()
         alcoholConsumption = self.getDrinks()
-        quality = self.getQualities()
+        rem = self.getQualities()
         earliestHour = self.dateToDaysAgo(self.earliestDateInKeys(hours))
         earliestDrink = self.dateToDaysAgo(self.earliestDateInKeys(alcoholConsumption))
         #earliestQuality = self.dateToDaysAgo(self.earliestDateInKeys(quality))
@@ -325,7 +319,7 @@ class GoalManager:
                 for k in range(j, j - goalSpan, -1):
                     day = (date.today() - timedelta(days=k)).strftime("%Y-%m-%d")
                     try:
-                        qualityGiven =  qualityNeeded and quality[day] == "Quality"
+                        qualityGiven =  qualityNeeded and rem[day] >= 2
                     except:
                         #print("error1")
                         pass
@@ -342,10 +336,6 @@ class GoalManager:
             if (goalMet and entered):
                 date1 = (date.today() - timedelta(days=goalStart)).strftime("%Y-%m-%d")
                 date2 = (date.today() - timedelta(days=goalEnd  )).strftime("%Y-%m-%d")
-                if (date1 == date2):
-                    print(goalStart)
-                    print(goalEnd)
-                    print("woah")
                 windowMessage += "\nGoal met from " + str(date1) + " to " + str(date2)
                 break
             elif goalMet:
@@ -356,93 +346,6 @@ class GoalManager:
 
         return windowMessage + "\n"
 
-        #########################del?
-        monitoredDates = {} #LocalDate[]
-        monitoredStat  = {} #int[]
-        sleepQuality   = {} #String[]
-        max = True
-        qualityNeeded = False
-        if (goalType == "Maximum Sleep" or goalType == "Minimum Sleep" or goalType == "Minimum Quality Sleep"): #!!!!!!
-            sleeps = self.getSleeps() #Sleep[]
-            monitoredDates = [" "] * len(sleeps)
-            monitoredStat  = [0]   * len(sleeps)
-            sleepQuality   = [" "] * len(sleeps)
-            for i in range (0, len(monitoredDates), 1):
-                monitoredDates[i] = sleeps[i].getDate()
-                monitoredStat[i]  = sleeps[i].getDuration()
-                sleepQuality[i]   = sleeps[i].getQuality()
-            if (goalType == "Minimum Sleep" or goalType == "Minimum Quality Sleep"):
-                max = False
-                if (goalType == "Minimum Quality Sleep"):
-                    qualityNeeded = True
-        else:
-            drinks = self.getDrinks() #AlcoholConsumption[]
-            monitoredDates = [" "] * len(drinks)
-            monitoredStat  = [0] * len(drinks)
-            sleepQuality   = [" "] * len(drinks)
-            for i in range (0, len(monitoredDates), 1):
-                monitoredDates[i] = drinks[i].getDate()
-                monitoredStat[i]  = drinks[i].getQuantity()
-
-        statsLen = len(monitoredStat)
-
-        windowMessage = "Goal: " + goalType + " of " + str(goalFigure) + " per " + str(goalSpan) + " days, for " + str(goalDuration) + " days"
-        notMet = True
-
-        lateValid = -2
-        earlyValid = -1
-
-        notMet = True
-
-        for i in range (statsLen - 1, goalSpan - 1, -1):
-            total = 0
-            minIndex = i - goalSpan + 1
-            for j in range (i, minIndex - 1, -1):
-                if (not qualityNeeded
-                or sleepQuality[j] == "Quality"): #!!!!!!
-                    total += monitoredStat[j]
-            if (total <= goalFigure and     max
-            or  total >= goalFigure and not max):
-                earlyValid = minIndex
-                if lateValid == -2:
-                    lateValid = i
-            else:
-                earlyValid = -1
-                lateValid = -2
-            if (lateValid - earlyValid) >= goalDuration - 1:
-                windowMessage += "\nGoal met from " + str(monitoredDates[earlyValid]) + " to " + str(monitoredDates[lateValid])
-                notMet = False
-                break
-        if notMet:
-            windowMessage += "\nGoal not met"   
-        return windowMessage + "\n"
-        #DELETE GOALS THAT HAVE BEEN MET
-
-    #may be able to delete this
-    def intInputPositive(self, output):
-        num = input(output)
-        validEntry = True
-        num = num.strip()
-        validNums = "0123456789"
-        allZeros = True
-        for digit in num:
-            if (not validNums.contains(digit)):
-                validEntry = False
-                break
-            if (digit != '0'):
-                allZeros = False
-        if ((not validEntry) or allZeros):
-            print("Input is invalid, please try again")
-            if (allZeros):
-                print("Number of days can't be 0")
-            return -1
-        intNum = -1
-        try:
-            intNum = int(num)
-        except:
-            return -1
-        return intNum
-
     def cleanseDict(self, dict): #ensure dictionary is formatted correctly
         keysToDel = []
         for key in dict.keys():
@@ -450,34 +353,30 @@ class GoalManager:
                 keysToDel.append(key)
                 continue
             word = ""
-            for char in dict[key]:
-                if not (char == ' ' or char == '\"'):
-                    word += char
-            dict[key] = word
+            try:
+                for char in dict[key]:
+                    if not (char == ' ' or char == '\"'):
+                        word += char
+                dict[key] = word
+            except:
+                pass
         for key in keysToDel:
             del dict[key]
         return dict
     def getHours(self): 
         csvGet = CSVReader()
-        csvGet.read(self.dataFilename)
-        hours = getattr(csvGet, "hours")
+        csvGet.read(self.fPath)
+        hours = getattr(csvGet, "asleep")
         return self.cleanseDict(hours)
     def getQualities(self):
         csvGet = CSVReader()
-        csvGet.read(self.dataFilename)
-        qualities = getattr(csvGet, "quality")
+        csvGet.read(self.fPath)
+        qualities = getattr(csvGet, "rem")
         return self.cleanseDict(qualities)
     def getDrinks(self):
         csvGet = CSVReader()
-        csvGet.read(self.dataFilename)
+        csvGet.read(self.fPath)
         drinks = getattr(csvGet, "alcohol")
         return self.cleanseDict(drinks)
-
-
-#goalMan = GoalManager()
-#goalMan.trackProgress()
-
-# to ask:
-# Different things that quality can be stored as
 
 
