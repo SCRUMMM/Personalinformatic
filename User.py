@@ -3,7 +3,8 @@ import CSVReader
 import AlcoholConsumption
 import GoalManager
 import RewardSystem
-#import Sleep
+import graphManager
+import sleep
 
 # TODO:
 #   1) Put sleep data in class instance
@@ -16,10 +17,11 @@ class User:
     def __init__(self):
         self.CSVReader = CSVReader.CSVReader()
         self.AlcoholConsumption = AlcoholConsumption.AlcoholConsumption()
-        #self.Sleep = Sleep.sleep()
+        self.sleep = sleep.sleep()
         self.userFile = None
         self.GoalManager = None
         self.RewardSystem = None
+        self.GraphManager = None
 
         self.loginOrRegister()
         self.mainLoop()
@@ -30,13 +32,19 @@ class User:
         for key, value in self.getRawAlcoholData().items():
             self.AlcoholConsumption.record(key[:10], value)
 
+        #for column in self.getRawSleepData():
+         #   for key, value in column:
+          #      self.sleep
+
         while True:
-            action = input("Enter 'a' to add alcohol data, 'g' to access your goals, 'r' to access your rewards, or 'e' to exit: ")
-            while action not in ['a', 'g', 'r', 'e']:
+            action = input("Enter 'a' to add alcohol data, 's' to add sleep data, 'g' to access your goals, 'r' to access your rewards, 'p' to plot graphs, or 'e' to exit: ")
+            while action not in ['a', 'g', 'r', 'p', 'e']:
                 action = input("Enter 'a' to add alcohol data, 'g' to access your goals, 'r' to access your rewards, or 'e' to exit: ")
 
             if action == 'a':
                 self.enterNewAlcoholData()
+            elif action == 's':
+                self.enterNewSleepData()
             elif action == 'g':
                 inp = input("Enter 's' to set new goals, or 'p' to see your progress: ")
                 while inp not in ['s', 'p']:
@@ -49,8 +57,13 @@ class User:
                 self.RewardSystem.redeemRewards()
                 with open(self.username+"Points.txt", 'w') as f:
                     f.write(str(self.RewardSystem.points))
+            elif action == 'p':
+                self.GraphManager.plot_graphs()
             else:
                 exit()
+    
+    def enterNewSleepData(self):
+        pass
 
     def enterNewAlcoholData(self):
         date = input("Enter the date in format YYYY-MM-DD: ")
@@ -100,7 +113,14 @@ class User:
             self.register()
 
     def getRawSleepData(self):
-        return self.CSVReader.dicts[1:] # self.asleep, self.in_bed, self.core, self.deep, self.rem, self.awake
+        #data = self.CSVReader.dicts[1:] # self.asleep, self.in_bed, self.core, self.deep, self.rem, self.awake
+        #dataDict = {}
+        #for key, value in data[0]:
+            #dataDict[key] = [value]
+        
+        #for i in range(1, 6):
+        pass
+
 
     def getRawAlcoholData(self):
         return self.CSVReader.alcohol
@@ -120,6 +140,7 @@ class User:
         with open(username+"Points.txt", 'r') as f:
             points = int(f.read())
         self.RewardSystem = RewardSystem.RewardSystem(points, self.userFile)
+        self.GraphManager = graphManager.GraphManager(self.userFile)
 
     def check(self, username, password):
         with open(self.credentialsFile, 'r') as f:
@@ -148,9 +169,10 @@ class User:
         with open(username + "Goals.txt", 'w') as f:
             f.write("")
         self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
-        with open(username + "Points.txt") as f:
+        with open(username + "Points.txt", 'w') as f:
             f.write("0")
         self.RewardSystem = RewardSystem.RewardSystem(0, self.userFile)
+        self.GraphManager = graphManager.GraphManager(self.userFile)
 
 def hashString(string):
     return hashlib.md5(string.encode()).hexdigest()
