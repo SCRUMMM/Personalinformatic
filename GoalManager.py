@@ -1,5 +1,5 @@
 """
-GoalManager for CM12005 coursework by Liam O'Connor 2024-04-18, updated 2024-04-22 for compatibility
+GoalManager for CM12005 coursework by Liam O'Connor
 
 setGoals():
 Creates a pop-up window with input boxes where the user can enter to set a goal
