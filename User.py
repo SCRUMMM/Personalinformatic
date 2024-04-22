@@ -13,9 +13,8 @@ import graphManager
 import sleep
 
 # TODO:
-#   1) Put sleep data in class instance
-#   2) Get sleep input and write to CSV file
-#   3) Test
+#   1) Get sleep input and write to CSV file
+#   2) Write User class implementation details
 
 # Date,Alcohol Consumption (count),Sleep Analysis [Asleep] (hr),Sleep Analysis [In Bed] (hr),Sleep Analysis [Core] (hr),Sleep Analysis [Deep] (hr),Sleep Analysis [REM] (hr),Sleep Analysis [Awake] (hr) 
 
@@ -30,18 +29,18 @@ class User:
         self.GraphManager = None
 
         self.loginOrRegister()
-        self.mainLoop()
 
-    def mainLoop(self):
         self.CSVReader.read(self.userFile)
 
         for key, value in self.getRawAlcoholData().items():
             self.AlcoholConsumption.record(key[:10], value)
+        
+        for key, value in self.getRawSleepData().items():
+            self.sleep.record(key, value)
 
-        #for column in self.getRawSleepData():
-         #   for key, value in column:
-          #      self.sleep
+        self.mainLoop()
 
+    def mainLoop(self):
         while True:
             action = input("Enter 'a' to add alcohol data, 's' to add sleep data, 'g' to access your goals, 'r' to access your rewards, 'p' to plot graphs, or 'e' to exit: ")
             while action not in ['a', 'g', 'r', 'p', 'e']:
@@ -119,14 +118,16 @@ class User:
             self.register()
 
     def getRawSleepData(self):
-        #data = self.CSVReader.dicts[1:] # self.asleep, self.in_bed, self.core, self.deep, self.rem, self.awake
-        #dataDict = {}
-        #for key, value in data[0]:
-            #dataDict[key] = [value]
+        data = self.CSVReader.dicts[1:] # self.asleep, self.in_bed, self.core, self.deep, self.rem, self.awake
+        dataDict = {}
+        for key, value in data[0].items():
+            dataDict[key] = [value]
         
-        #for i in range(1, 6):
-        pass
-
+        for i in range(1, 6):
+            for key, value in data[i].items():
+                dataDict[key].append(value)
+        
+        return dataDict
 
     def getRawAlcoholData(self):
         return self.CSVReader.alcohol
