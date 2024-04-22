@@ -12,10 +12,6 @@ import RewardSystem
 import graphManager
 import sleep
 
-# TODO:
-#   1) Get sleep input and write to CSV file
-#   2) Write User class implementation details
-
 # Date,Alcohol Consumption (count),Sleep Analysis [Asleep] (hr),Sleep Analysis [In Bed] (hr),Sleep Analysis [Core] (hr),Sleep Analysis [Deep] (hr),Sleep Analysis [REM] (hr),Sleep Analysis [Awake] (hr) 
 
 class User:
@@ -36,15 +32,15 @@ class User:
             self.AlcoholConsumption.record(key[:10], value)
         
         for key, value in self.getRawSleepData().items():
-            self.sleep.record(key, value)
+            self.sleep.record(key[:10], value)
 
         self.mainLoop()
 
     def mainLoop(self):
         while True:
             action = input("Enter 'a' to add alcohol data, 's' to add sleep data, 'g' to access your goals, 'r' to access your rewards, 'p' to plot graphs, or 'e' to exit: ")
-            while action not in ['a', 'g', 'r', 'p', 'e']:
-                action = input("Enter 'a' to add alcohol data, 'g' to access your goals, 'r' to access your rewards, or 'e' to exit: ")
+            while action not in ['a', 's', 'g', 'r', 'p', 'e']:
+                action = input("Enter 'a' to add alcohol data, 's' to add sleep data, 'g' to access your goals, 'r' to access your rewards, 'p' to plot graphs, or 'e' to exit: ")
 
             if action == 'a':
                 self.enterNewAlcoholData()
@@ -68,26 +64,49 @@ class User:
                 exit()
     
     def enterNewSleepData(self):
-        pass
+        t = input("Would you like to record: '1' time asleep, '2' time in bed, '3' core sleep, '4' deep sleep, '5' REM sleep, or '6' time awake? ")
+        while t not in ['1', '2', '3', '4', '5', '6']:
+            t = input("Would you like to record: '1' time asleep, '2' time in bed, '3' core sleep, '4' deep sleep, '5' REM sleep, or '6' time awake? ")
+        date = input("Enter the date in format YYYY-MM-DD: ")
+        time = float(input("Enter the time in hours: "))
+        slot = int(t) - 1
+
+        if date in self.sleep.sleep_record.keys() or date in self.AlcoholConsumption.consumption_record.keys():
+            with open(self.userFile, 'r') as f:
+                raw = f.readlines()
+
+            newRaw = []
+            for row in raw:
+                if row[:19] == date + " 00:00:00":
+                    currentRow = row.split(',')
+                    currentRow[slot+2] = str(time)
+                    currentRow = ",".join(currentRow)
+                    newRaw.append(currentRow)
+                else:
+                    newRaw.append(row)
+            
+            with open(self.userFile, 'w') as f:
+                f.write("".join(newRaw))
+        else:
+            newRow = ['0']*8+['']
+            newRow[0] = date + " 00:00:00"
+            newRow[slot+2] = str(time)
+            newRow = ",".join(newRow)
+            with open(self.userFile, 'a') as f:
+                f.write("\n"+newRow)
+        
+        currentRecord = self.sleep.sleep_record
+        currentRecord[slot] = time
+        self.sleep.record(date, currentRecord)
 
     def enterNewAlcoholData(self):
         date = input("Enter the date in format YYYY-MM-DD: ")
         quantity = int(input("Enter the number of units you had: "))
 
-        if date in self.AlcoholConsumption.consumption_record.keys():
-            self.AlcoholConsumption.record(date, quantity)
-            
+        if date in self.AlcoholConsumption.consumption_record.keys() or date in self.sleep.sleep_record.keys():
             with open(self.userFile, 'r') as f:
                 raw = f.readlines()
-            
-            for row in raw:
-                if row[:19] == date + " 00:00:00":
-                    currentRow = row.split(',')
-                    break
-            
-            currentRow[1] = str(quantity)
-            currentRow = ",".join(currentRow)
-            
+           
             newRaw = []
             for row in raw:
                 if row[:19] == date + " 00:00:00":
@@ -102,9 +121,11 @@ class User:
                 f.write("".join(newRaw))
 
         else:
-            self.AlcoholConsumption.record(date, quantity)
+            print("hi")
             with open(self.userFile, 'a') as f:
                 f.write("\n"+date+" 00:00:00,"+str(quantity)+",0,0,0,0,0,0,")
+        
+        self.AlcoholConsumption.record(date, quantity)
 
     def loginOrRegister(self):
         self.credentialsFile = "credentials.txt"
@@ -173,6 +194,13 @@ class User:
 
         self.username = username
         self.userFile = username + "Data.csv"
+
+        try:
+            with open(self.userFile) as f:
+                pass
+        except FileNotFoundError:
+            with open(self.userFile, 'w') as f:
+                f.write("0000-00-00 00:00:00,0,0,0,0,0,0,0,")
         with open(username + "Goals.txt", 'w') as f:
             f.write("")
         self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
