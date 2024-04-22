@@ -1,3 +1,9 @@
+"""
+1) Login or register (register should create relevant files for new user)
+2) Enter some sort of main loop where the user can say what they want to happen
+3) Do what the user says 
+"""
+
 import hashlib
 import CSVReader
 import AlcoholConsumption
