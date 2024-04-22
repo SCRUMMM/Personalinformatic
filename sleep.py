@@ -1,4 +1,4 @@
-class sleep():
+class Sleep():
 
     def __init__(self):
         self.sleep_record = {}
