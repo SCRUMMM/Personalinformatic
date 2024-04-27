@@ -30,7 +30,7 @@ class User:
 
         for key, value in self.getRawAlcoholData().items():
             self.AlcoholConsumption.record(key[:10], value)
-        
+
         for key, value in self.getRawSleepData().items():
             self.sleep.record(key[:10], value)
 
@@ -167,7 +167,7 @@ class User:
         self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
         with open(username+"Points.txt", 'r') as f:
             points = int(f.read())
-        self.RewardSystem = RewardSystem.RewardSystem(points, self.userFile)
+        self.RewardSystem = RewardSystem.RewardSystem( self.userFile)
         self.GraphManager = graphManager.GraphManager(self.userFile)
 
     def check(self, username, password):
@@ -206,7 +206,7 @@ class User:
         self.GoalManager = GoalManager.GoalManager(username + "Goals.txt", self.userFile)
         with open(username + "Points.txt", 'w') as f:
             f.write("0")
-        self.RewardSystem = RewardSystem.RewardSystem(0, self.userFile)
+        self.RewardSystem = RewardSystem.RewardSystem(self.userFile)
         self.GraphManager = graphManager.GraphManager(self.userFile)
 
 def hashString(string):
