@@ -1,5 +1,5 @@
 """
-RewardSystem for CM12005 coursework by Liam O'Connor 2024-04-18
+RewardSystem for CM12005 coursework by Liam O'Connor
 
 Awards points for sleeping well, drinking little and for unlocking acheivements
 Pop-up window displays points earned and how they were earned
@@ -11,17 +11,15 @@ rs = RewardSystem()
 rs.redeemRewards()
 """
 
-from Sleep import Sleep
-from AlcoholConsumption import AlcoholConsumption
 from CSVReader import CSVReader
 import tkinter as tk
 from PIL import Image, ImageTk
 from datetime import datetime, date, timedelta
 
 class RewardSystem:
-    def __init__(self, points, dataFile) -> None:
-        self.points = points
-        self.dataFile = dataFile
+    def __init__(self, recordsFilePath) -> None:
+        self.points = 0
+        self.fPath = recordsFilePath
     def redeemRewards(self):
 
         self.awardPoints()
@@ -70,14 +68,14 @@ class RewardSystem:
     def awardPoints(self):
         # points only awarded for last 30 days
         # 1 point for every hour of sleep, up to 9 per day, then take away one for every extra hour slept
-        # 5 extra points for a night of quality of sleep
+        # 5 extra points for a night of quality of sleep (>= 2 hours of rem sleep)
         # 5 extra points for 7-9 hours of sleep
         # 5 points awarded for less than 15 units of alcohol drunk in a day
         # 5 extra points for 0 units of alcohol drunk in a day
 
         hours = self.getHours()
         alcoholConsumption = self.getDrinks()
-        quality = self.getQualities()
+        rem = self.getQualities()
         #today = date.today().strftime("%Y-%m-%d")
 
         for i in range(30, 0, -1):
@@ -94,8 +92,8 @@ class RewardSystem:
             except:
                 pass
             try:
-                thisQuality = quality[day]
-                if thisQuality == "Quality": #!!!!!!!!!!!!!!
+                thisQuality = rem[day]
+                if thisQuality >= 2: #!!!!!!!!!!!!!!
                     self.points += 5
             except:
                 pass
@@ -164,7 +162,7 @@ class RewardSystem:
         #Acheivement: Sleep between 7 and 9 hours a night for 10/100/365 consecutive days
         hours = self.getHours()
         alcoholConsumption = self.getDrinks()
-        quality = self.getQualities()
+        rem = self.getQualities()
 
         earliest = self.dateToDaysAgo(self.earliestDateInKeys(hours))
         earliestDrink = self.dateToDaysAgo(self.earliestDateInKeys(alcoholConsumption))
@@ -221,20 +219,20 @@ class RewardSystem:
             for sleep in range (i, i-30, -1):
                 day = (date.today() - timedelta(days=sleep)).strftime("%Y-%m-%d")
                 try:
-                    if quality[day].quality == "Quality": # "Quality" is placeholder !!!!!!!!!!!!!!!!!!
+                    if rem[day] >= 2: # "Quality" is placeholder !!!!!!!!!!!!!!!!!!
                         goodSleeps += 1
                 except:
                     pass
             if goodSleeps > mostQualitySleeps:
                 mostQualitySleeps = goodSleeps
         if mostQualitySleeps >= 10:
-            message += "Acheivement Unlocked: Get 10 days of quality sleep in a month\nReward: 30 points\n"
+            message += "Acheivement Unlocked: Get 10 days of quality sleep (at least 2 hours of REM per day) in a month\nReward: 30 points\n"
             self.points += 30
             if mostQualitySleeps >= 20:
-                message += "Acheivement Unlocked: Get 20 days of quality sleep in a month\nReward: 50 points\n"
+                message += "Acheivement Unlocked: Get 20 days of quality sleep (at least 2 hours of REM per day) in a month\nReward: 50 points\n"
                 self.points += 50
                 if mostQualitySleeps >= 30:
-                    message += "Acheivement Unlocked: Get 30 days of quality sleep in a month\nReward: 100 points\n"
+                    message += "Acheivement Unlocked: Get 30 days of quality sleep (at least 2 hours of REM per day) in a month\nReward: 100 points\n"
                     self.points += 100
         return message
 
@@ -245,26 +243,29 @@ class RewardSystem:
                 keysToDel.append(key)
                 continue
             word = ""
-            for char in dict[key]:
-                if not (char == ' ' or char == '\"'):
-                    word += char
-            dict[key] = word
+            try:
+                for char in dict[key]:
+                    if not (char == ' ' or char == '\"'):
+                        word += char
+                dict[key] = word
+            except:
+                pass
         for key in keysToDel:
             del dict[key]
         return dict
     def getHours(self): 
         csvGet = CSVReader()
-        csvGet.read(self.dataFile)
-        hours = getattr(csvGet, "hours")
+        csvGet.read(self.fPath)
+        hours = getattr(csvGet, "asleep")
         return self.cleanseDict(hours)
     def getQualities(self):
         csvGet = CSVReader()
-        csvGet.read(self.dataFile)
-        qualities = getattr(csvGet, "quality")
+        csvGet.read(self.fPath)
+        qualities = getattr(csvGet, "rem")
         return self.cleanseDict(qualities)
     def getDrinks(self):
         csvGet = CSVReader()
-        csvGet.read(self.dataFile)
+        csvGet.read(self.fPath)
         drinks = getattr(csvGet, "alcohol")
         return self.cleanseDict(drinks)
 
